@@ -40,7 +40,7 @@ export default function App() {
     let { status } = await Location.requestPermissionsAsync();
 
     if (status !== "granted") {
-      Alert.alert("Ops!", "Permissão de acesso a localização negada.");
+      Alert.alert("Ops!", "Location access permission denied");
     }
 
     let {
@@ -50,7 +50,7 @@ export default function App() {
     setRegion({ latitude, longitude, latitudeDelta: 100, longitudeDelta: 100 });
   };
 
- 
+ //Objetc initionRegion centralized the map when the aplication is started. The app try to access am user location
 
   useEffect(() => {
     getCurrentPosition();
@@ -60,97 +60,20 @@ export default function App() {
     Linking.openURL(url);
   }
 
+  //Function search a github user from user name typed on app
   async function handleSearchUser() {
     let dev: Dev;
 
     if (!username) return;
 
+    //Create a variable for safe the return on JSON from Github api
     const githubUser = await fetchUserGithub(username);
 
+    //Check if user and location exist. Return user if both is true or error message if is false
     if (!githubUser || !githubUser.location) {
       Alert.alert(
         "Ops!",
-        "Usuário não encontrado ou não tem a localização definida no Github"
+        "User not found or does not have the location defined on Github"
       );
       return;
     }
-
-    const localMapBox = await fetchLocalMapBox(githubUser.location);
-
-    if (!localMapBox || !localMapBox.features[0].center) {
-      Alert.alert(
-        "Ops!",
-        "Erro ao converter a localidade do usuário em coordenadas geográficas!"
-      );
-      return;
-    }
-
-    const [longitude, latitude] = localMapBox.features[0].center;
-
-    dev = {
-      ...githubUser,
-      latitude,
-      longitude,
-    };
-
-    setRegion({
-      latitude,
-      longitude,
-      latitudeDelta: 3,
-      longitudeDelta: 3,
-    });
-
-    const devAlreadyExists = dev && devs.find((user) => user.id === dev.id);
-
-    if (devAlreadyExists) return;
-
-    setDevs([...devs, dev]);
-    setUsername("");
-  }
-
-  return (
-    <View style={styles.container}>
-      <MapView
-        provider={PROVIDER_GOOGLE}
-        style={styles.map}
-        region={region}
-        initialRegion={initialRegion}
-      >
-        {devs.map((dev) => (
-          <Marker
-            key={dev.id}
-            image={{ uri: `${dev.avatar_url}&s=120` }}
-            calloutAnchor={{
-              x: 2.9,
-              y: 0.8,
-            }}
-            coordinate={{
-              latitude: Number(dev.latitude),
-              longitude: Number(dev.longitude),
-            }}
-          >
-            <Callout tooltip onPress={() => handleOpenGithub(dev.html_url)}>
-              <View style={styles.calloutContainer}>
-                <Text style={styles.calloutText}>{dev.name}</Text>
-                <Text style={styles.calloutSmallText}>{dev.bio}</Text>
-              </View>
-            </Callout>
-          </Marker>
-        ))}
-      </MapView>
-
-      <View style={styles.footer}>
-        <TextInput
-          placeholder={`${devs.length} Dev's encontrados`}
-          style={styles.footerText}
-          onChangeText={setUsername}
-          value={username}
-        />
-
-        <RectButton style={styles.searchUserButton} onPress={handleSearchUser}>
-          <FontAwesome name="github" size={24} color="#fff" />
-        </RectButton>
-      </View>
-    </View>
-  );
-}
