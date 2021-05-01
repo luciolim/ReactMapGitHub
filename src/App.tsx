@@ -77,7 +77,9 @@ export default function App() {
       );
       return;
     }
-     //Create variable get a return from mapbox api and set a user location searched and show on map. 
+
+
+    //Create variable get a return from mapbox api and set a user location searched and show on map. 
     const localMapBox = await fetchLocalMapBox(githubUser.location);
 
     //Error message when location is incorrect
@@ -104,3 +106,62 @@ export default function App() {
       latitudeDelta: 3,
       longitudeDelta: 3,
     });
+
+    //If search the same id on Github It return itself
+    const devAlreadyExists = dev && devs.find((user) => user.id === dev.id);
+
+    if (devAlreadyExists) return;
+
+    setDevs([...devs, dev]);
+    setUsername("");
+  }
+
+  return (
+
+    //Create a map component with its properties and fill up whole screen
+  <View style={styles.container}>
+      <MapView
+        provider={PROVIDER_GOOGLE}
+        style={styles.map}
+        region={region}
+        initialRegion={initialRegion}
+      >
+        {devs.map((dev) => (
+          <Marker
+            key={dev.id}
+            image={{ uri: `${dev.avatar_url}&s=120` }}
+            calloutAnchor={{
+              x: 2.9,
+              y: 0.8,
+            }}
+            coordinate={{
+              latitude: Number(dev.latitude),
+              longitude: Number(dev.longitude),
+            }}
+          >
+{/* Create a component to view a suspended box with name and function by researched user from github*/}
+            <Callout tooltip onPress={() => handleOpenGithub(dev.html_url)}>
+              <View style={styles.calloutContainer}>
+                <Text style={styles.calloutText}>{dev.name}</Text>
+                <Text style={styles.calloutSmallText}>{dev.bio}</Text>
+              </View>
+            </Callout>
+          </Marker>
+        ))}
+      </MapView>
+ {/* Create a input component to take name by user for search from github*/}
+      <View style={styles.footer}>
+        <TextInput
+          placeholder={`${devs.length} Dev's found`}
+          style={styles.footerText}
+          onChangeText={setUsername}
+          value={username}
+        />
+{/* Create an icon button to call a function handleSearchUser that get a github user*/}
+        <RectButton style={styles.searchUserButton} onPress={handleSearchUser}>
+          <FontAwesome name="github" size={24} color="#fff" />
+        </RectButton>
+      </View>
+    </View>
+  );
+}
