@@ -77,3 +77,30 @@ export default function App() {
       );
       return;
     }
+     //Create variable get a return from mapbox api and set a user location searched and show on map. 
+    const localMapBox = await fetchLocalMapBox(githubUser.location);
+
+    //Error message when location is incorrect
+    if (!localMapBox || !localMapBox.features[0].center) {
+      Alert.alert(
+        "Ops!",
+        "Error converting the user's location to geographic coordinates!"
+      );
+      return;
+    }
+
+    //Create 2 variables get latitude and longitude from Mapbox
+    const [longitude, latitude] = localMapBox.features[0].center;
+
+    dev = {
+      ...githubUser,
+      latitude,
+      longitude,
+    };
+
+    setRegion({
+      latitude,
+      longitude,
+      latitudeDelta: 3,
+      longitudeDelta: 3,
+    });
